@@ -2,13 +2,17 @@ import os
 import requests
 import zipfile
 import geopandas as gpd
+from .cacher import get_cache_dir
 
+# TODO: Typehint, improve documentation.
 
-def get_natural_earth(category, name, res="10m", data_dir="./data/map_data"):
+def get_natural_earth(category, name, res="10m", dir_override=None):
     """
     Downloads, unzips, and loads Natural Earth vector data.
     Categories: 'cultural', 'physical'
     """
+
+    data_dir = get_cache_dir(dir_override)
 
     os.makedirs(data_dir, exist_ok=True)
 
@@ -20,34 +24,24 @@ def get_natural_earth(category, name, res="10m", data_dir="./data/map_data"):
     zip_path = os.path.join(data_dir, filename)
     extract_dir = os.path.join(data_dir, f"ne_{res}_{name}")
 
+    shp_file = os.path.join(extract_dir, f"ne_{res}_{name}.shp")
 
-    if not os.path.exists(extract_dir):
+    _download_ne_data(url, extract_dir, name, res, zip_path, shp_file)
+
+    return gpd.read_file(shp_file)
+
+def _download_ne_data(url, extract_dir, name, res, zip_path, shp_file):
+    if not os.path.exists(shp_file): 
+
         print(f"Downloading {name} ({res})...")
+
         r = requests.get(url, stream=True, timeout=10)
+
         with open(zip_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_dir)
+
         os.remove(zip_path)
-
-
-    shp_file = os.path.join(extract_dir, f"ne_{res}_{name}.shp")
-    return gpd.read_file(shp_file)
-
-
-def load_natural_earth_data():
-    """Fetch country, province and city data from the downloaded NE files.
-
-    Returns:
-        geodataframe
-
-    """
-
-    countries = get_natural_earth("cultural", "admin_0_countries")
-    provinces = get_natural_earth("cultural", "admin_1_states_provinces")
-    cities = get_natural_earth("cultural", "populated_places")
-
-    return {"countries": countries, "provinces": provinces, "cities": cities}

@@ -26,6 +26,12 @@ world = map_loader.get_natural_earth('cultural', 'admin_0_countries')
 ne-loader --help
 ```
 
+To set an environment override for the NE data save path:
+
+```bash
+export NATURAL_EARTH_CACHE_DIR="..."
+```
+
 ## License
 
 MIT
