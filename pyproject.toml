@@ -19,3 +19,6 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/erictunn/ne-loader"
+
+[project.scripts]
+ne-loader = "ne_loader.cli:main"
