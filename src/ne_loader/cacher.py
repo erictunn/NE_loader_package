@@ -1,29 +1,37 @@
-"""Finds system cache directory for caching of NE data."""
+"""Resolve the cache directory used for downloaded Natural Earth data."""
 
 import os
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
+
 from platformdirs import user_cache_dir
 
-def get_cache_dir(path_override: Optional[str] = None):
-    """Returns a path to read or write NE data to or from.
-    In order of precedence:
-    1. Override for the path.
-    2. Environment override for the path.
-    3. OS cache.
+
+PathLike = Union[str, Path]
+
+
+def get_cache_dir(path_override: Optional[PathLike] = None) -> Path:
+    """Return the directory used to cache Natural Earth downloads.
+
+    Cache directory in order of precedence:
+
+    1. Explicit function argument 'path_override'
+    2. ``NATURAL_EARTH_CACHE_DIR`` environment variable.
+    3. Platform-specific user cache directory.
 
     Args:
-        path_override (str | None, optional): _description_. Defaults to None.
+        path_override: Optional cache directory 
 
     Returns:
-        _type_: Path 
+        A ``pathlib.Path`` pointing to the cache directory.
     """
 
     if path_override:
-        return path_override
+        return Path(path_override).expanduser()
 
-    env_path = os.getenv("NATURAL_EARTH_CACHE_DIR")
+    env_path: Optional[str] = os.getenv("NATURAL_EARTH_CACHE_DIR")
     if env_path:
-        return env_path
+        return Path(env_path).expanduser()
 
-    path = user_cache_dir(appname="ne-loader", appauthor="erictunn")
-    return path
+    default_cache_dir: str = user_cache_dir(appname="ne-loader", appauthor="erictunn")
+    return Path(default_cache_dir)

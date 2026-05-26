@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "platformdirs>=4"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ne-loader"
-version = "0.1.1"
+version = "0.2"
 description = "A simple loader for Natural Earth map data."
 authors = [
     { name = "Eric Tunn", email = "erictunn@icloud.com" }
@@ -14,6 +14,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.8"
 dependencies = [
     "geopandas>=0.12",
+    "platformdirs>=4",
     "requests>=2.25"
 ]
 
