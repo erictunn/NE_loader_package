@@ -1,3 +1,5 @@
+"""Handles downloading and fetching of NE data."""
+
 import logging
 import zipfile
 from pathlib import Path
@@ -7,6 +9,35 @@ import geopandas as gpd
 import requests
 
 from .cacher import PathLike, get_cache_dir
+
+
+def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
+    """Build a Natural Earth dataset filename."""
+    return f"ne_{res}_{name}{suffix}"
+
+
+def build_ne_url(category: str, name: str, res: str = "10m") -> str:
+    """Build the download URL for a Natural Earth vector dataset."""
+    return (
+        f"https://naciscdn.org/naturalearth/{res}/{category}/"
+        f"{build_ne_filename(name, res)}"
+    )
+
+
+def build_ne_zip_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+    """Build the local cache path for a Natural Earth zip file."""
+    return Path(data_dir) / build_ne_filename(name, res)
+
+
+def build_ne_extract_dir(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+    """Build the local extraction directory for a Natural Earth dataset."""
+    return Path(data_dir) / build_ne_filename(name, res, suffix="")
+
+
+def build_ne_shp_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+    """Build the local shapefile path for an extracted Natural Earth dataset."""
+    extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
+    return extract_dir / build_ne_filename(name, res, suffix=".shp")
 
 
 def get_natural_earth(
@@ -23,25 +54,23 @@ def get_natural_earth(
         name: Dataset name without the ``ne_{res}_`` prefix, e.g.
             "admin_0_countries".
         res: Natural Earth resolution. "10m", "50m" and "110m" are accepted.
-            however, not all datasets will have all 3 resolutions available.
+            However, not all datasets will have all 3 resolutions available.
         dir_override: Optional cache directory override. This takes precedence over the
             ``NATURAL_EARTH_CACHE_DIR`` environment variable.
 
     Returns:
         A GeoPandas ``GeoDataFrame`` loaded from the cached shapefile.
+
     """
     logger: logging.Logger = logging.getLogger(__name__)
 
     data_dir: Path = get_cache_dir(dir_override)
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    base_url: str = f"https://naciscdn.org/naturalearth/{res}/{category}/"
-    filename: str = f"ne_{res}_{name}.zip"
-    url: str = base_url + filename
-
-    zip_path: Path = data_dir / filename
-    extract_dir: Path = data_dir / f"ne_{res}_{name}"
-    shp_file: Path = extract_dir / f"ne_{res}_{name}.shp"
+    url: str = build_ne_url(category, name, res)
+    zip_path: Path = build_ne_zip_path(data_dir, name, res)
+    extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
+    shp_file: Path = build_ne_shp_path(data_dir, name, res)
 
     _download_ne_data(
         url=url,

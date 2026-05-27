@@ -32,6 +32,12 @@ To set an environment override for the NE data save path:
 export NATURAL_EARTH_CACHE_DIR="..."
 ```
 
+## Tests
+
+```bash
+python3 -m pytest tests/test_map_loader.py
+```
+
 ## License
 
 MIT

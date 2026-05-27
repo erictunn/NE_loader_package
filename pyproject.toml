@@ -23,3 +23,10 @@ Homepage = "https://github.com/erictunn/ne-loader"
 
 [project.scripts]
 ne-loader = "ne_loader.cli:main"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "D",
+]
