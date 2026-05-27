@@ -1,3 +1,5 @@
+"""Provides basic command line functionality."""
+
 import argparse
 
 import geopandas as gpd
