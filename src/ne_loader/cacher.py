@@ -14,18 +14,16 @@ def get_cache_dir(path_override: Optional[PathLike] = None) -> Path:
     """Return the directory used to cache Natural Earth downloads.
 
     Cache directory in order of precedence:
-
     1. Explicit function argument 'path_override'
     2. ``NATURAL_EARTH_CACHE_DIR`` environment variable.
     3. Platform-specific user cache directory.
 
     Args:
-        path_override: Optional cache directory 
-
+        path_override: Optional cache directory
     Returns:
         A ``pathlib.Path`` pointing to the cache directory.
-    """
 
+    """
     if path_override:
         return Path(path_override).expanduser()
 
