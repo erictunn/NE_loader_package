@@ -12,6 +12,9 @@ from .cacher import PathLike, get_cache_dir
 from .error_handler import ErrorMode, error_handler, validate_error_mode
 
 
+fallback_logger: logging.Logger = logging.getLogger(__name__)
+
+
 def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
     """Build a Natural Earth dataset filename."""
     return f"ne_{res}_{name}{suffix}"
@@ -47,6 +50,7 @@ def get_natural_earth(
     res: str = "10m",
     dir_override: Optional[PathLike] = None,
     error_mode: ErrorMode = "raise",
+    user_logger: Optional[logging.Logger] = None,
 ) -> Union[gpd.GeoDataFrame, Exception, None]:
     """Download, cache, and load a Natural Earth vector dataset.
 
@@ -63,14 +67,15 @@ def get_natural_earth(
             ``"ignore"`` returns None,
             ``"raise"`` raises the error,
             and ``"return"`` returns the exception object.
+        user_logger: Allow user to pass in their own logger to use instead of default.
 
     Returns:
         A GeoPandas ``GeoDataFrame`` loaded from the cached shapefile.
 
     """
+    logger = user_logger or fallback_logger
     try:
         validate_error_mode(error_mode)
-        logger: logging.Logger = logging.getLogger(__name__)
 
         data_dir: Path = get_cache_dir(dir_override)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -92,6 +97,10 @@ def get_natural_earth(
 
         return gpd.read_file(shp_file)
     except Exception as error:
+        logger.error(f"ne-loader: error caught fetching data with get_natural_earth():"\
+                     f"\n{error}")
+        print(f"ne-loader: error caught fetching data with get_natural_earth():"\
+                     f"\n{error}")
         return error_handler(error, error_mode)
 
 
