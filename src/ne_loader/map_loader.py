@@ -3,12 +3,13 @@
 import logging
 import zipfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import geopandas as gpd
 import requests
 
 from .cacher import PathLike, get_cache_dir
+from .error_handler import ErrorMode, error_handler, validate_error_mode
 
 
 def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
@@ -45,7 +46,8 @@ def get_natural_earth(
     name: str,
     res: str = "10m",
     dir_override: Optional[PathLike] = None,
-) -> gpd.GeoDataFrame:
+    error_mode: ErrorMode = "raise",
+) -> Union[gpd.GeoDataFrame, Exception, None]:
     """Download, cache, and load a Natural Earth vector dataset.
 
     Args:
@@ -57,32 +59,40 @@ def get_natural_earth(
             However, not all datasets will have all 3 resolutions available.
         dir_override: Optional cache directory override. This takes precedence over the
             ``NATURAL_EARTH_CACHE_DIR`` environment variable.
+        error_mode: Error handling mode. Default is raise.
+            ``"ignore"`` returns None,
+            ``"raise"`` raises the error,
+            and ``"return"`` returns the exception object.
 
     Returns:
         A GeoPandas ``GeoDataFrame`` loaded from the cached shapefile.
 
     """
-    logger: logging.Logger = logging.getLogger(__name__)
+    try:
+        validate_error_mode(error_mode)
+        logger: logging.Logger = logging.getLogger(__name__)
 
-    data_dir: Path = get_cache_dir(dir_override)
-    data_dir.mkdir(parents=True, exist_ok=True)
+        data_dir: Path = get_cache_dir(dir_override)
+        data_dir.mkdir(parents=True, exist_ok=True)
 
-    url: str = build_ne_url(category, name, res)
-    zip_path: Path = build_ne_zip_path(data_dir, name, res)
-    extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
-    shp_file: Path = build_ne_shp_path(data_dir, name, res)
+        url: str = build_ne_url(category, name, res)
+        zip_path: Path = build_ne_zip_path(data_dir, name, res)
+        extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
+        shp_file: Path = build_ne_shp_path(data_dir, name, res)
 
-    _download_ne_data(
-        url=url,
-        extract_dir=extract_dir,
-        name=name,
-        res=res,
-        zip_path=zip_path,
-        shp_file=shp_file,
-        logger=logger,
-    )
+        _download_ne_data(
+            url=url,
+            extract_dir=extract_dir,
+            name=name,
+            res=res,
+            zip_path=zip_path,
+            shp_file=shp_file,
+            logger=logger,
+        )
 
-    return gpd.read_file(shp_file)
+        return gpd.read_file(shp_file)
+    except Exception as error:
+        return error_handler(error, error_mode)
 
 
 def _download_ne_data(
@@ -98,7 +108,7 @@ def _download_ne_data(
     if shp_file.exists():
         return
 
-    print(f"Downloading {name} ({res})...")
+    print(f"ne-loader: Downloading {name} ({res})...")
 
     try:
         response: requests.Response = requests.get(url, stream=True, timeout=10)
@@ -112,18 +122,21 @@ def _download_ne_data(
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_dir)
         zip_path.unlink()
+        return None
 
     except requests.exceptions.HTTPError as error:
         logger.error(
-            "A HTTP error occurred while attempting to fetch data: %s\n"
+            "ne-loader: A HTTP error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
         )
         print(f"A HTTP error occurred while attempting to fetch data: {error}")
+        raise
     except requests.exceptions.RequestException as error:
         logger.error(
-            "A request error occurred while attempting to fetch data: %s\n"
+            "ne-loader: A request error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
         )
         print(f"A request error occurred while attempting to fetch data: {error}")
+        raise
