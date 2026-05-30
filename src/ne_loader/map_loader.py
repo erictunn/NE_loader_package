@@ -3,7 +3,7 @@
 import logging
 import zipfile
 from pathlib import Path
-from typing import Optional, Union
+from typing import Literal, Optional, Union, overload
 
 import geopandas as gpd
 import requests
@@ -13,6 +13,8 @@ from .error_handler import ErrorMode, error_handler, validate_error_mode
 
 
 fallback_logger: logging.Logger = logging.getLogger(__name__)
+
+Resolution = Literal["10m", "50m", "110m"]
 
 
 def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
@@ -44,10 +46,54 @@ def build_ne_shp_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
     return extract_dir / build_ne_filename(name, res, suffix=".shp")
 
 
+@overload
 def get_natural_earth(
     category: str,
     name: str,
-    res: str = "10m",
+    res: Resolution = "10m",
+    dir_override: Optional[PathLike] = None,
+    error_mode: Literal["raise"] = "raise",
+    user_logger: Optional[logging.Logger] = None,
+) -> gpd.GeoDataFrame: ...
+
+
+@overload
+def get_natural_earth(
+    category: str,
+    name: str,
+    res: Resolution = "10m",
+    dir_override: Optional[PathLike] = None,
+    error_mode: Literal["ignore"] = "ignore",
+    user_logger: Optional[logging.Logger] = None,
+) -> Optional[gpd.GeoDataFrame]: ...
+
+
+@overload
+def get_natural_earth(
+    category: str,
+    name: str,
+    res: Resolution = "10m",
+    dir_override: Optional[PathLike] = None,
+    error_mode: Literal["return"] = "return",
+    user_logger: Optional[logging.Logger] = None,
+) -> Union[gpd.GeoDataFrame, Exception]: ...
+
+
+@overload
+def get_natural_earth(
+    category: str,
+    name: str,
+    res: Resolution = "10m",
+    dir_override: Optional[PathLike] = None,
+    error_mode: ErrorMode = "raise",
+    user_logger: Optional[logging.Logger] = None,
+) -> Union[gpd.GeoDataFrame, Exception, None]: ...
+
+
+def get_natural_earth(
+    category: str,
+    name: str,
+    res: Resolution = "10m",
     dir_override: Optional[PathLike] = None,
     error_mode: ErrorMode = "raise",
     user_logger: Optional[logging.Logger] = None,
@@ -63,8 +109,8 @@ def get_natural_earth(
             However, not all datasets will have all 3 resolutions available.
         dir_override: Optional cache directory override. This takes precedence over the
             ``NATURAL_EARTH_CACHE_DIR`` environment variable.
-        error_mode: Error handling mode. Default is raise.
-            ``"ignore"`` returns None,
+        error_mode: Error handling mode. Default is raise. Upon error:
+            ``"ignore"`` returns None (note: use with caution),
             ``"raise"`` raises the error,
             and ``"return"`` returns the exception object.
         user_logger: Allow user to pass in their own logger to use instead of default.
@@ -108,7 +154,7 @@ def _download_ne_data(
     url: str,
     extract_dir: Path,
     name: str,
-    res: str,
+    res: Resolution,
     zip_path: Path,
     shp_file: Path,
     logger: logging.Logger,
@@ -135,7 +181,8 @@ def _download_ne_data(
 
     except requests.exceptions.HTTPError as error:
         logger.error(
-            "ne-loader: A HTTP error occurred while attempting to fetch data: %s\n"
+            "ne-loader/_download_ne_data(): "
+            "A HTTP error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
         )
@@ -143,7 +190,8 @@ def _download_ne_data(
         raise
     except requests.exceptions.RequestException as error:
         logger.error(
-            "ne-loader: A request error occurred while attempting to fetch data: %s\n"
+            "ne-loader/_download_ne_data(): "
+            "A request error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
         )
