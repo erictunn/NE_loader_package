@@ -15,6 +15,8 @@ pip install ne-loader
 
 ## Usage
 
+For example:  
+
 ```python
 from ne_loader import map_loader
 world = map_loader.get_natural_earth('cultural', 'admin_0_countries')
@@ -35,7 +37,7 @@ export NATURAL_EARTH_CACHE_DIR="..."
 ## Tests
 
 ```bash
-python3 -m pytest tests/test_map_loader.py
+python3 -m pytest tests
 ```
 
 ## License
