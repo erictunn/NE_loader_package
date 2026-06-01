@@ -3,7 +3,7 @@
 import logging
 import zipfile
 from pathlib import Path
-from typing import Literal, Optional, Union, overload
+from typing import Literal, Optional, Union, NoReturn, overload
 
 import geopandas as gpd
 import requests
@@ -45,25 +45,13 @@ def build_ne_shp_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
     extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
     return extract_dir / build_ne_filename(name, res, suffix=".shp")
 
-
 @overload
 def get_natural_earth(
     category: str,
     name: str,
+    error_mode: Literal["ignore"],
     res: Resolution = "10m",
     dir_override: Optional[PathLike] = None,
-    error_mode: Literal["raise"] = "raise",
-    user_logger: Optional[logging.Logger] = None,
-) -> gpd.GeoDataFrame: ...
-
-
-@overload
-def get_natural_earth(
-    category: str,
-    name: str,
-    res: Resolution = "10m",
-    dir_override: Optional[PathLike] = None,
-    error_mode: Literal["ignore"] = "ignore",
     user_logger: Optional[logging.Logger] = None,
 ) -> Optional[gpd.GeoDataFrame]: ...
 
@@ -72,32 +60,32 @@ def get_natural_earth(
 def get_natural_earth(
     category: str,
     name: str,
+    error_mode: Literal["raise"],
     res: Resolution = "10m",
     dir_override: Optional[PathLike] = None,
-    error_mode: Literal["return"] = "return",
     user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception]: ...
+) -> Union[gpd.GeoDataFrame, NoReturn]: ...
 
 
 @overload
 def get_natural_earth(
     category: str,
     name: str,
+    error_mode: Literal["return"],
     res: Resolution = "10m",
     dir_override: Optional[PathLike] = None,
-    error_mode: ErrorMode = "raise",
     user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception, None]: ...
+) -> Union[gpd.GeoDataFrame, Exception]: ...
 
 
 def get_natural_earth(
     category: str,
     name: str,
+    error_mode: ErrorMode = "raise",
     res: Resolution = "10m",
     dir_override: Optional[PathLike] = None,
-    error_mode: ErrorMode = "raise",
     user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception, None]:
+) -> Union[gpd.GeoDataFrame, Exception, NoReturn, None]:
     """Download, cache, and load a Natural Earth vector dataset.
 
     Args:
