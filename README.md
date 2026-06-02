@@ -15,11 +15,19 @@ pip install ne-loader
 
 ## Usage
 
-For example:  
-
 ```python
 from ne_loader import map_loader
 world = map_loader.get_natural_earth('cultural', 'admin_0_countries')
+```
+
+Errors are raised by default. To return the caught exception instead:
+
+```python
+result = map_loader.get_natural_earth(
+    'cultural',
+    'admin_0_countries',
+    error_mode='return',
+)
 ```
 
 ## CLI
