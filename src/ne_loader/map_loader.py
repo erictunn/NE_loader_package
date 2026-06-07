@@ -1,6 +1,8 @@
 """Handles downloading and fetching of NE data."""
 
+import contextlib
 import logging
+import shutil
 import zipfile
 from pathlib import Path
 from typing import Literal, Optional, Union, overload
@@ -159,7 +161,7 @@ def _download_ne_data(
     if shp_file.exists():
         return
 
-    print(f"ne-loader: Downloading {name} ({res})...")
+    logger.info(f"ne-loader: Downloading {name} ({res})...")
 
     try:
         response: requests.Response = requests.get(url, stream=True, timeout=10)
@@ -172,7 +174,6 @@ def _download_ne_data(
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_dir)
-        zip_path.unlink()
         return None
 
     except requests.exceptions.HTTPError as error:
@@ -191,6 +192,14 @@ def _download_ne_data(
             error,
         )
         raise
+
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            zip_path.unlink()
+        if (not shp_file.exists() and
+        extract_dir.name == build_ne_filename(name, res, suffix="")):
+            shutil.rmtree(extract_dir, ignore_errors=True)
+
 def _validate_res(res: Resolution) -> None:
     """Validate the resolution against "10m", "50m", "110m".
 
