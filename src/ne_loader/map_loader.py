@@ -117,6 +117,7 @@ def get_natural_earth(
     logger = user_logger or fallback_logger
     try:
         validate_error_mode(error_mode)
+        _validate_res(res)
 
         data_dir: Path = get_cache_dir(dir_override)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -190,3 +191,16 @@ def _download_ne_data(
             error,
         )
         raise
+def _validate_res(res: Resolution) -> None:
+    """Validate the resolution against "10m", "50m", "110m".
+
+    Args:
+        res (Resolution): The resolution to be validated.
+
+    Raises:
+        ValueError: If res is invalid, raises ValueError.
+
+    """
+    if res not in ("10m", "50m", "110m"):
+        raise ValueError(f"Invalid resolution: {res}.\
+                         \nResolution must be one of (\"10m\", \"50m\", \"110m\")")
