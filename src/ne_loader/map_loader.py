@@ -119,7 +119,7 @@ def get_natural_earth(
     logger = user_logger or fallback_logger
     try:
         validate_error_mode(error_mode)
-        _validate_res(res)
+        validate_res(res)
 
         data_dir: Path = get_cache_dir(dir_override)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -200,7 +200,7 @@ def _download_ne_data(
         extract_dir.name == build_ne_filename(name, res, suffix="")):
             shutil.rmtree(extract_dir, ignore_errors=True)
 
-def _validate_res(res: Resolution) -> None:
+def validate_res(res: str) -> None:
     """Validate the resolution against "10m", "50m", "110m".
 
     Args:
