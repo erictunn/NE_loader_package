@@ -1,5 +1,7 @@
 # NE Loader
 
+[![CI](https://github.com/erictunn/NE_loader_package/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/erictunn/NE_loader_package/actions/workflows/ci.yml)
+
 A simple, robust Python package to download and load Natural Earth map data using GeoPandas.
 
 ## Features
