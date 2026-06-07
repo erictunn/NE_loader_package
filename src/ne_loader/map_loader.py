@@ -51,6 +51,19 @@ def get_natural_earth(
     category: str,
     name: str,
     res: Resolution = "10m",
+    *,
+    dir_override: Optional[PathLike] = None,
+    error_mode: Literal["ignore"],
+    user_logger: Optional[logging.Logger] = None,
+) -> Optional[gpd.GeoDataFrame]: ...
+
+
+@overload
+def get_natural_earth(
+    category: str,
+    name: str,
+    res: Resolution = "10m",
+    *,
     dir_override: Optional[PathLike] = None,
     error_mode: Literal["raise"] = "raise",
     user_logger: Optional[logging.Logger] = None,
@@ -62,38 +75,18 @@ def get_natural_earth(
     category: str,
     name: str,
     res: Resolution = "10m",
+    *,
     dir_override: Optional[PathLike] = None,
-    error_mode: Literal["ignore"] = "ignore",
-    user_logger: Optional[logging.Logger] = None,
-) -> Optional[gpd.GeoDataFrame]: ...
-
-
-@overload
-def get_natural_earth(
-    category: str,
-    name: str,
-    res: Resolution = "10m",
-    dir_override: Optional[PathLike] = None,
-    error_mode: Literal["return"] = "return",
+    error_mode: Literal["return"],
     user_logger: Optional[logging.Logger] = None,
 ) -> Union[gpd.GeoDataFrame, Exception]: ...
 
 
-@overload
 def get_natural_earth(
     category: str,
     name: str,
     res: Resolution = "10m",
-    dir_override: Optional[PathLike] = None,
-    error_mode: ErrorMode = "raise",
-    user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception, None]: ...
-
-
-def get_natural_earth(
-    category: str,
-    name: str,
-    res: Resolution = "10m",
+    *,
     dir_override: Optional[PathLike] = None,
     error_mode: ErrorMode = "raise",
     user_logger: Optional[logging.Logger] = None,
@@ -107,6 +100,8 @@ def get_natural_earth(
             "admin_0_countries".
         res: Natural Earth resolution. "10m", "50m" and "110m" are accepted.
             However, not all datasets will have all 3 resolutions available.
+
+    Keyword Args:
         dir_override: Optional cache directory override. This takes precedence over the
             ``NATURAL_EARTH_CACHE_DIR`` environment variable.
         error_mode: Error handling mode. Default is raise. Upon error:
@@ -143,10 +138,10 @@ def get_natural_earth(
 
         return gpd.read_file(shp_file)
     except Exception as error:
-        logger.error(f"ne-loader: error caught fetching data with get_natural_earth():"\
-                     f"\n{error}")
-        print(f"ne-loader: error caught fetching data with get_natural_earth():"\
-                     f"\n{error}")
+        logger.error(
+            "ne-loader: error caught fetching data with get_natural_earth():\n",
+            error,
+        )
         return error_handler(error, error_mode)
 
 
@@ -186,7 +181,6 @@ def _download_ne_data(
             "This may cause an error when attempting to load the data.",
             error,
         )
-        print(f"A HTTP error occurred while attempting to fetch data: {error}")
         raise
     except requests.exceptions.RequestException as error:
         logger.error(
@@ -195,5 +189,4 @@ def _download_ne_data(
             "This may cause an error when attempting to load the data.",
             error,
         )
-        print(f"A request error occurred while attempting to fetch data: {error}")
         raise

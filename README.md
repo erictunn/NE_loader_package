@@ -20,6 +20,16 @@ from ne_loader import map_loader
 world = map_loader.get_natural_earth('cultural', 'admin_0_countries')
 ```
 
+Errors are raised by default. To return the caught exception instead:
+
+```python
+result = map_loader.get_natural_earth(
+    'cultural',
+    'admin_0_countries',
+    error_mode='return',
+)
+```
+
 ## CLI
 
 ```bash
@@ -35,7 +45,7 @@ export NATURAL_EARTH_CACHE_DIR="..."
 ## Tests
 
 ```bash
-python3 -m pytest tests/test_map_loader.py
+python3 -m pytest tests
 ```
 
 ## License
