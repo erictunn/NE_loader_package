@@ -138,10 +138,10 @@ def get_natural_earth(
 
         return gpd.read_file(shp_file)
     except Exception as error:
-        logger.error(f"ne-loader: error caught fetching data with get_natural_earth():"\
-                     f"\n{error}")
-        print(f"ne-loader: error caught fetching data with get_natural_earth():"\
-                     f"\n{error}")
+        logger.error(
+            "ne-loader: error caught fetching data with get_natural_earth():\n",
+            error,
+        )
         return error_handler(error, error_mode)
 
 
@@ -181,7 +181,6 @@ def _download_ne_data(
             "This may cause an error when attempting to load the data.",
             error,
         )
-        print(f"A HTTP error occurred while attempting to fetch data: {error}")
         raise
     except requests.exceptions.RequestException as error:
         logger.error(
@@ -190,5 +189,4 @@ def _download_ne_data(
             "This may cause an error when attempting to load the data.",
             error,
         )
-        print(f"A request error occurred while attempting to fetch data: {error}")
         raise
