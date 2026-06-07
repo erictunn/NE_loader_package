@@ -22,7 +22,7 @@ def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
     return f"ne_{res}_{name}{suffix}"
 
 
-def build_ne_url(category: str, name: str, res: str = "10m") -> str:
+def build_ne_url(category: str, name: str, res: Resolution) -> str:
     """Build the download URL for a Natural Earth vector dataset."""
     return (
         f"https://naciscdn.org/naturalearth/{res}/{category}/"
@@ -30,17 +30,17 @@ def build_ne_url(category: str, name: str, res: str = "10m") -> str:
     )
 
 
-def build_ne_zip_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_zip_path(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local cache path for a Natural Earth zip file."""
     return Path(data_dir) / build_ne_filename(name, res)
 
 
-def build_ne_extract_dir(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_extract_dir(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local extraction directory for a Natural Earth dataset."""
     return Path(data_dir) / build_ne_filename(name, res, suffix="")
 
 
-def build_ne_shp_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_shp_path(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local shapefile path for an extracted Natural Earth dataset."""
     extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
     return extract_dir / build_ne_filename(name, res, suffix=".shp")
