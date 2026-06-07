@@ -1,6 +1,8 @@
 """Handles downloading and fetching of NE data."""
 
+import contextlib
 import logging
+import shutil
 import zipfile
 from pathlib import Path
 from typing import Literal, Optional, Union, overload
@@ -22,7 +24,7 @@ def build_ne_filename(name: str, res: str = "10m", suffix: str = ".zip") -> str:
     return f"ne_{res}_{name}{suffix}"
 
 
-def build_ne_url(category: str, name: str, res: str = "10m") -> str:
+def build_ne_url(category: str, name: str, res: Resolution) -> str:
     """Build the download URL for a Natural Earth vector dataset."""
     return (
         f"https://naciscdn.org/naturalearth/{res}/{category}/"
@@ -30,17 +32,17 @@ def build_ne_url(category: str, name: str, res: str = "10m") -> str:
     )
 
 
-def build_ne_zip_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_zip_path(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local cache path for a Natural Earth zip file."""
     return Path(data_dir) / build_ne_filename(name, res)
 
 
-def build_ne_extract_dir(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_extract_dir(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local extraction directory for a Natural Earth dataset."""
     return Path(data_dir) / build_ne_filename(name, res, suffix="")
 
 
-def build_ne_shp_path(data_dir: PathLike, name: str, res: str = "10m") -> Path:
+def build_ne_shp_path(data_dir: PathLike, name: str, res: Resolution) -> Path:
     """Build the local shapefile path for an extracted Natural Earth dataset."""
     extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
     return extract_dir / build_ne_filename(name, res, suffix=".shp")
@@ -117,6 +119,7 @@ def get_natural_earth(
     logger = user_logger or fallback_logger
     try:
         validate_error_mode(error_mode)
+        validate_res(res)
 
         data_dir: Path = get_cache_dir(dir_override)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -158,7 +161,7 @@ def _download_ne_data(
     if shp_file.exists():
         return
 
-    print(f"ne-loader: Downloading {name} ({res})...")
+    logger.info(f"ne-loader: Downloading {name} ({res})...")
 
     try:
         response: requests.Response = requests.get(url, stream=True, timeout=10)
@@ -171,7 +174,6 @@ def _download_ne_data(
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_dir)
-        zip_path.unlink()
         return None
 
     except requests.exceptions.HTTPError as error:
@@ -190,3 +192,24 @@ def _download_ne_data(
             error,
         )
         raise
+
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            zip_path.unlink()
+        if (not shp_file.exists() and
+        extract_dir.name == build_ne_filename(name, res, suffix="")):
+            shutil.rmtree(extract_dir, ignore_errors=True)
+
+def validate_res(res: str) -> None:
+    """Validate the resolution against "10m", "50m", "110m".
+
+    Args:
+        res (Resolution): The resolution to be validated.
+
+    Raises:
+        ValueError: If res is invalid, raises ValueError.
+
+    """
+    if res not in ("10m", "50m", "110m"):
+        raise ValueError(f"Invalid resolution: {res}.\
+                         \nResolution must be one of (\"10m\", \"50m\", \"110m\")")
