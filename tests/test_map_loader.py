@@ -51,6 +51,9 @@ def test_build_ne_shp_path() -> None:
 
 def test_validate_res() -> None:
     """Tests that validate_res(res=kaboom) raises the correct ValueError."""
-    with pytest.raises(ValueError, match=re.escape(f"Invalid resolution: kaboom.\
-                         \nResolution must be one of (\"10m\", \"50m\", \"110m\")")):
+    expected_message = (
+        'Invalid resolution: kaboom.\n'
+        'Resolution must be one of ("10m", "50m", "110m")'
+    )
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
         validate_res("kaboom")
