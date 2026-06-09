@@ -5,7 +5,7 @@ import logging
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Literal, Optional, Union, overload
+from typing import Literal, overload
 
 import geopandas as gpd
 import requests
@@ -54,10 +54,10 @@ def get_natural_earth(
     name: str,
     res: Resolution = "10m",
     *,
-    dir_override: Optional[PathLike] = None,
+    dir_override: PathLike | None = None,
     error_mode: Literal["ignore"],
-    user_logger: Optional[logging.Logger] = None,
-) -> Optional[gpd.GeoDataFrame]: ...
+    user_logger: logging.Logger | None = None,
+) -> gpd.GeoDataFrame | None: ...
 
 
 @overload
@@ -66,9 +66,9 @@ def get_natural_earth(
     name: str,
     res: Resolution = "10m",
     *,
-    dir_override: Optional[PathLike] = None,
+    dir_override: PathLike | None = None,
     error_mode: Literal["raise"] = "raise",
-    user_logger: Optional[logging.Logger] = None,
+    user_logger: logging.Logger | None = None,
 ) -> gpd.GeoDataFrame: ...
 
 
@@ -78,10 +78,10 @@ def get_natural_earth(
     name: str,
     res: Resolution = "10m",
     *,
-    dir_override: Optional[PathLike] = None,
+    dir_override: PathLike | None = None,
     error_mode: Literal["return"],
-    user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception]: ...
+    user_logger: logging.Logger | None = None,
+) -> gpd.GeoDataFrame | Exception: ...
 
 
 def get_natural_earth(
@@ -89,10 +89,10 @@ def get_natural_earth(
     name: str,
     res: Resolution = "10m",
     *,
-    dir_override: Optional[PathLike] = None,
+    dir_override: PathLike | None = None,
     error_mode: ErrorMode = "raise",
-    user_logger: Optional[logging.Logger] = None,
-) -> Union[gpd.GeoDataFrame, Exception, None]:
+    user_logger: logging.Logger | None = None,
+) -> gpd.GeoDataFrame | Exception | None:
     """Download, cache, and load a Natural Earth vector dataset.
 
     Args:
@@ -196,9 +196,11 @@ def download_ne_data(
     finally:
         with contextlib.suppress(FileNotFoundError):
             zip_path.unlink()
-        if (not shp_file.exists() and
-        extract_dir.name == build_ne_filename(name, res, suffix="")):
+
+        expected_extract_dir = build_ne_filename(name, res, suffix="")
+        if not shp_file.exists() and extract_dir.name == expected_extract_dir:
             shutil.rmtree(extract_dir, ignore_errors=True)
+
 
 def validate_res(res: str) -> None:
     """Validate the resolution against "10m", "50m", "110m".
@@ -211,5 +213,7 @@ def validate_res(res: str) -> None:
 
     """
     if res not in ("10m", "50m", "110m"):
-        raise ValueError(f"Invalid resolution: {res}.\
-                         \nResolution must be one of (\"10m\", \"50m\", \"110m\")")
+        raise ValueError(
+            f"Invalid resolution: {res}.\n"
+            'Resolution must be one of ("10m", "50m", "110m")'
+        )

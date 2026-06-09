@@ -14,7 +14,7 @@ authors = [
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "geopandas>=0.12",
     "platformdirs>=4",
