@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 import requests
 
-from ne_loader.map_loader import build_ne_filename, download_ne_data
+from ne_loader.map_loader import build_ne_filename, download_ne_data, Resolution
 
 
 def _mock_zip_bytes(name: str, res: str) -> bytes:
@@ -24,7 +24,7 @@ def _mock_zip_bytes(name: str, res: str) -> bytes:
 
 
 class MockResponse:
-    """Minimal response object for the downloader's requests.get call."""
+    """Mock successful response object for the downloader's requests.get call."""
 
     def __init__(self, data: bytes) -> None:
         """Store response bytes for chunked streaming."""
@@ -40,14 +40,17 @@ class MockResponse:
             yield self._data[start : start + chunk_size]
 
 
+
+url = "https://example.org/fake.zip"
+name = "admin_0_countries"
+res: Resolution = "10m"
+logger = logging.getLogger("testing")
+
 def test_download_ne_data_success(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Verify download_ne_data writes the extracted shapefile on success."""
-    name = "admin_0_countries"
-    res = "10m"
-    url = "https://example.org/fake.zip"
     mocked_zip = _mock_zip_bytes(name, res)
 
     def mock_get(request_url: str, stream: bool, timeout: int) -> MockResponse:
@@ -71,9 +74,54 @@ def test_download_ne_data_success(
         res=res,
         zip_path=zip_path,
         shp_file=shp_file,
-        logger=logging.getLogger("testing"),
+        logger=logger,
     )
 
     assert shp_file.exists()
     assert extract_dir.exists()
     assert not zip_path.exists()
+
+
+class BadResponse:
+    """Mock unsuccessful response for the downloader's requests.get call."""
+
+    def raise_for_status(self) -> None:
+        """Mock the unsuccessful response."""
+        raise requests.exceptions.HTTPError("404 Client Error")
+
+
+def test_download_ne_data_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Tests that download_ne_data leaves no artifacts upon HTTP error."""
+
+    def mock_get(request_url: str, stream: bool, timeout: int) -> BadResponse:
+        """Return a fake response and verify the downloader's request options."""
+        assert request_url == url
+        assert stream is True
+        assert timeout == 10
+        return BadResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    base = tmp_path / "ne-cache"
+    base.mkdir()
+    extract_dir = base / build_ne_filename(name, res, suffix="")
+    zip_path = base / build_ne_filename(name, res)
+    shp_file = extract_dir / build_ne_filename(name, res, suffix=".shp")
+
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        download_ne_data(
+            url=url,
+            extract_dir=extract_dir,
+            name=name,
+            res=res,
+            zip_path=zip_path,
+            shp_file=shp_file,
+            logger=logger,
+        )
+
+    assert not zip_path.exists()
+    assert not extract_dir.exists()
