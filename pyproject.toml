@@ -7,7 +7,7 @@ where = ["src"]
 
 [project]
 name = "ne-loader"
-version = "0.3.2"
+version = "0.3.3"
 description = "A simple loader for Natural Earth map data."
 authors = [
     { name = "Eric Tunn", email = "erictunn@icloud.com" }
