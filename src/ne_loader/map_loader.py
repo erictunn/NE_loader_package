@@ -129,7 +129,7 @@ def get_natural_earth(
         extract_dir: Path = build_ne_extract_dir(data_dir, name, res)
         shp_file: Path = build_ne_shp_path(data_dir, name, res)
 
-        _download_ne_data(
+        download_ne_data(
             url=url,
             extract_dir=extract_dir,
             name=name,
@@ -148,7 +148,7 @@ def get_natural_earth(
         return error_handler(error, error_mode)
 
 
-def _download_ne_data(
+def download_ne_data(
     url: str,
     extract_dir: Path,
     name: str,
@@ -178,7 +178,7 @@ def _download_ne_data(
 
     except requests.exceptions.HTTPError as error:
         logger.error(
-            "ne-loader/_download_ne_data(): "
+            "ne-loader/download_ne_data(): "
             "A HTTP error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
@@ -186,7 +186,7 @@ def _download_ne_data(
         raise
     except requests.exceptions.RequestException as error:
         logger.error(
-            "ne-loader/_download_ne_data(): "
+            "ne-loader/download_ne_data(): "
             "A request error occurred while attempting to fetch data: %s\n"
             "This may cause an error when attempting to load the data.",
             error,
