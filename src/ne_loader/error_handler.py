@@ -1,6 +1,6 @@
 """Helpers for error handling."""
 
-from typing import Literal, NoReturn, Union, overload
+from typing import Literal, NoReturn, overload
 
 ErrorMode = Literal["ignore", "raise", "return"]
 
@@ -20,7 +20,7 @@ def error_handler(error: Exception, error_mode: Literal["raise"]) -> NoReturn: .
 def error_handler(
     error: Exception,
     error_mode: ErrorMode,
-) -> Union[None, Exception]:
+) -> Exception | None:
     """Provide consistent error handling based on standardised error mode.
 
     Args:
@@ -32,7 +32,7 @@ def error_handler(
         ValueError: if error mode is invalid, raises a ValueError.
 
     Returns:
-        Union[None, Exception]: depending on mode, can return None (ignore),
+        Exception | None: depending on mode, can return None (ignore),
             the error object (return) or raise the error again (raise).
 
     """

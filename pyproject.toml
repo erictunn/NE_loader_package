@@ -7,14 +7,14 @@ where = ["src"]
 
 [project]
 name = "ne-loader"
-version = "0.3.2"
+version = "0.3.3"
 description = "A simple loader for Natural Earth map data."
 authors = [
     { name = "Eric Tunn", email = "erictunn@icloud.com" }
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "geopandas>=0.12",
     "platformdirs>=4",
