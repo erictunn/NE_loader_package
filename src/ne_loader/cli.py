@@ -1,38 +1,21 @@
 """Provides basic command line functionality."""
 
-import argparse
+import click
 
 import geopandas as gpd
 
 from . import map_loader
 
 
+@click.group()
 def main() -> None:
-    """Run the Natural Earth loader command-line interface."""
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(
-        description="Download and load Natural Earth data."
-    )
-    parser.add_argument(
-        "category",
-        choices=["cultural", "physical"],
-        help="Data category",
-    )
-    parser.add_argument("name", help="Dataset name (e.g., admin_0_countries)")
-    parser.add_argument("--res", default="10m", help="Resolution (default: 10m)")
-    parser.add_argument("--out", help="Output file to save as GeoJSON (optional)")
-    args: argparse.Namespace = parser.parse_args()
-
-    gdf: gpd.GeoDataFrame = map_loader.get_natural_earth(
-        category=args.category,
-        name=args.name,
-        res=args.res,
-    )
-    if args.out:
-        gdf.to_file(args.out, driver="GeoJSON")
-        print(f"Saved to {args.out}")
-    else:
-        print(gdf.head())
+    """Entry point for the ne-loader CLI."""
 
 
-if __name__ == "__main__":
-    main()
+@main.command("download-get")
+@click.argument("category", help="Cultural | Physical")
+@click.argument("name", help="Dataset name (e.g., admin_0_countries)")
+@click.option("--res", default="10m", help="NE dataset resolution (default: 10m)")
+def cli_get_natural_earth(category: str, name: str, res: map_loader.Resolution) -> None:
+    """Download a Natural Earth dataset and load it into GeoPandas."""
+    map_loader.get_natural_earth(category, name, res)
