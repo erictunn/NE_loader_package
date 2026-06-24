@@ -14,8 +14,8 @@ def main() -> None:
 
 
 @main.command("download-get")
-@click.argument("category", help="Cultural | Physical")
-@click.argument("name", help="Dataset name (e.g., admin_0_countries)")
+@click.argument("category")
+@click.argument("name")
 @click.option("--res", default="10m", help="NE dataset resolution (default: 10m)")
 def cli_get_natural_earth(category: str, name: str, res: map_loader.Resolution) -> None:
     """Download a Natural Earth dataset and load it into GeoPandas."""
