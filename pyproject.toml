@@ -5,6 +5,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+ne_loader = ["py.typed"]
+
 [project]
 name = "ne-loader"
 version = "0.4"
