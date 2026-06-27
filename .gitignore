@@ -2,3 +2,4 @@ src/ne_loader.egg-info/
 build/
 __pycache__/
 data/
+.DS_store

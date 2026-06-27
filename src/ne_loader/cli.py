@@ -1,7 +1,6 @@
 """Provides basic command line functionality."""
 
 import click
-from pathlib import Path
 import geopandas as gpd
 
 from . import map_loader
@@ -23,6 +22,13 @@ def cli_get_natural_earth(category: str, name: str, res: map_loader.Resolution) 
 
 @main.command("where")
 def cli_where_cache() -> None:
-    """Locates where the cached NE data is."""
+    """Locate the cache directory."""
     cache_dir = get_cache_dir()
     click.echo(cache_dir)
+
+@main.command("list")
+def cli_list_cached_files() -> None:
+    """List all cached NE files within the cache dir."""
+    cache_dir = get_cache_dir()
+    sub_folders = [f.name for f in cache_dir.iterdir() if f.is_dir()]
+    click.echo(", ".join(sub_folders))
