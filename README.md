@@ -44,6 +44,40 @@ To set an environment override for the NE data save path:
 export NATURAL_EARTH_CACHE_DIR="..."
 ```
 
+Some commands include:  
+List cached datasets.  
+
+```bash
+ne-loader list
+```
+
+Query where the cached datasets are.  
+If you change NATURAL_EARTH_CACHE_DIR, the command shows the active cache path for the current environment.
+
+```bash
+ne-loader where
+```
+
+Download a Natural Earth Dataset. Default resolution is 10m.
+
+```bash
+ne-loader download {category} {name} --res {res}
+```
+
+Example usage to download 10m_admin_0_countries
+
+```bash
+ne-loader download cultural admin_0_countries
+```
+
+Delete either one dataset or all, from current cache directory.
+
+```bash
+ne-loader rm {dataset}
+# or
+ne-loader rm --all
+```
+
 ## Tests
 
 ```bash
