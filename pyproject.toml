@@ -5,9 +5,12 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+ne_loader = ["py.typed"]
+
 [project]
 name = "ne-loader"
-version = "0.3.3"
+version = "0.4"
 description = "A simple loader for Natural Earth map data."
 authors = [
     { name = "Eric Tunn", email = "erictunn@icloud.com" }
@@ -18,7 +21,8 @@ requires-python = ">=3.10"
 dependencies = [
     "geopandas>=0.12",
     "platformdirs>=4",
-    "requests>=2.25"
+    "requests>=2.25",
+    "click>=8.4"
 ]
 
 [project.urls]
