@@ -45,7 +45,7 @@ def error_handler(
         raise error
 
 
-def validate_error_mode(error_mode: str) -> None:
+def validate_error_mode(error_mode: ErrorMode) -> None:
     """Validate error_mode.
 
     Args:

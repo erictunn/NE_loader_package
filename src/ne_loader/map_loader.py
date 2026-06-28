@@ -142,7 +142,7 @@ def get_natural_earth(
         return gpd.read_file(shp_file)
     except Exception as error:
         logger.error(
-            "ne-loader: error caught fetching data with get_natural_earth():\n",
+            "ne-loader: error caught fetching data with get_natural_earth():%s",
             error,
         )
         return error_handler(error, error_mode)
@@ -202,7 +202,7 @@ def download_ne_data(
             shutil.rmtree(extract_dir, ignore_errors=True)
 
 
-def validate_res(res: str) -> None:
+def validate_res(res: Resolution) -> None:
     """Validate the resolution against "10m", "50m", "110m".
 
     Args:
