@@ -5,6 +5,7 @@ import pytest
 
 import ne_loader.cli as cli
 from ne_loader.map_loader import Resolution
+from ne_loader.cacher import get_cache_dir
 
 
 def test_cli_delegates_to_get_natural_earth(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -19,8 +20,30 @@ def test_cli_delegates_to_get_natural_earth(monkeypatch: pytest.MonkeyPatch) -> 
     runner = CliRunner()
     result = runner.invoke(
         cli.main,
-        ["download-get", "Cultural", "admin_0_countries", "--res", "50m"],
+        ["download", "Cultural", "admin_0_countries", "--res", "50m"],
     )
 
     assert result.exit_code == 0
     assert called["args"] == ("Cultural", "admin_0_countries", "50m")
+
+def test_cli_where_errors() -> None:
+    """Ensure CLI where command returns without error."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.main,
+        ["where"],
+    )
+
+    assert result.exit_code == 0
+    assert result.exception is None
+
+def test_cli_where_output() -> None:
+    """Ensure where command output is the same as get_cache_dir()."""
+    true_cache_dir = str(get_cache_dir()).strip()
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.main,
+        ["where"],
+    )
+    assert true_cache_dir == str(result.output).strip()
